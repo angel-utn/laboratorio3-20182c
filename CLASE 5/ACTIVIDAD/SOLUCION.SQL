@@ -1,0 +1,112 @@
+-- A) Listar la cantidad de clientes. 
+SELECT COUNT(*) AS CANT FROM CLIENTES
+
+-- B) Listar la cantidad de artículos nacionales. 
+SELECT COUNT(*) AS CANT FROM ARTICULOS WHERE ORIGEN = 'N' 
+
+-- C) Listar la cantidad de clientes argentinos. 
+SELECT COUNT(*) AS CANT FROM CLIENTES AS CLI
+INNER JOIN LOCALIDADES AS L ON L.IDLOCALIDAD = CLI.IDLOCALIDAD
+INNER JOIN PROVINCIAS AS PR ON PR.IDPROVINCIA = L.IDPROVINCIA
+INNER JOIN PAISES AS PA ON PA.IDPAIS = PR.IDPAIS
+WHERE PA.NOMBRE = 'ARGENTINA'
+
+-- D) Listar la cantidad de artículos con stock menor a 20. 
+SELECT COUNT(*) AS CANT FROM ARTICULOS WHERE STOCK < 20 
+
+-- E) Listar la cantidad de clientes de sexo femenino. 
+SELECT COUNT(*) AS CANT_MUJERES FROM CLIENTES WHERE SEXO = 'F'
+
+-- F) Listar el precio máximo de los artículos. 
+SELECT MAX(PU) AS MAS_CARO FROM ARTICULOS
+
+-- G) Listar el precio mínimo de los artículos. 
+SELECT MIN(PU) AS MAS_BARATO FROM ARTICULOS
+ 
+-- H) Listar la suma del stock total de todos los artículos. 
+SELECT SUM(A.STOCK) AS STOCK_TOTAL FROM ARTICULOS AS A
+
+-- I) Listar la valorización de todos los artículos. La suma del precio del artículo por la cantidad en stock. 
+SELECT SUM(A.STOCK*A.PU) AS VALOR_TOTAL FROM ARTICULOS AS A
+
+-- J) Listar la cantidad total vendida de productos. 
+SELECT SUM(AXV.CANTIDAD) AS CANT_VENDIDOS FROM ARTICULOS_X_VENTA AS AXV
+
+-- K) Listar la facturación total. 
+SELECT SUM(AXV.CANTIDAD*AXV.PU) AS FACTURACION_TOTAL FROM ARTICULOS_X_VENTA AS AXV
+
+-- L) Listar el precio promedio de los artículos. 
+SELECT AVG(A.PU) AS VALOR_PROMEDIO FROM ARTICULOS AS A
+
+-- M) Por cada cliente, listar apellido, nombre y la cantidad de compras realizadas. 
+SELECT CLI.APELLIDO, CLI.NOMBRE, COUNT(AXV.DNI) AS CANTIDAD_COMPRAS
+FROM CLIENTES AS CLI
+INNER JOIN VENTAS AS V ON V.DNI = CLI.DNI
+INNER JOIN ARTICULOS_X_VENTA AS AXV ON AXV.IDVENTA = CLI.IDVENTA
+GROUP BY CLI.APELLIDO, CLI.NOMBRE
+
+-- N) Por cada cliente, listar apellido, nombre y la total facturado en concepto de compras. 
+SELECT CLI.APELLIDO, CLI.NOMBRE, SUM(AXV.CANTIDAD * AXV.PU) AS TOTAL_FACTURADO
+FROM CLIENTES AS CLI
+INNER JOIN VENTAS AS V ON V.DNI = CLI.DNI
+INNER JOIN ARTICULOS_X_VENTA AS AXV ON AXV.IDVENTA = V.IDVENTA
+GROUP BY CLI.APELLIDO, CLI.NOMBRE
+
+-- Ñ) Por cada país, listar el nombre del país y la cantidad de clientes que viven en él. 
+-- RESUELTO TENIENDO EN CUENTA QUE UN PAÍS SIN CLIENTES DEBE FIGURAR EN EL LISTADO.
+SELECT PA.NOMBRE, COUNT(C.DNI) AS CANTIDAD
+FROM PAISES AS P
+LEFT JOIN PROVINCIAS AS PR ON PR.IDPAIS = PA.IDPAIS
+LEFT JOIN LOCALIDADES AS L ON L.IDPROVINCIA = PR.IDPROVINCIA
+LEFT JOIN CLIENTES AS C ON C.IDLOCALIDAD = L.IDLOCALIDAD
+GROUP BY PA.NOMBRE
+
+-- O) Por cada artículo, listar el nombre del artículo, marca y el total facturado en concepto de ventas. 
+SELECT A.DESCRIPCION, M.DESCRIPCION, SUM(AXV.CANTIDAD * AXV.PU) AS TOTAL_FACTURADO FROM ARTICULOS AS A
+INNER JOIN ARTICULOS_X_VENTA AS AXV ON AXV.IDARTICULO = A.IDARTICULO
+INNER JOIN MARCAS AS M ON M.IDMARCA = A.IDMARCA
+GROUP BY A.DESCRIPCION, M.DESCRIPCION
+
+-- P) Por cada categoría, listar el nombre de la categoría y la cantidad de artículos. 
+-- RESUELTO TENIENDO EN CUENTA QUE UNA CATEGORÍA SIN ARTÍCULOS DEBE FIGURAR EN EL LISTADO.
+SELECT C.CATEGORIA, COUNT(A.IDARTICULO) AS CANTIDAD FROM CATEGORIAS AS C
+LEFT JOIN CATEGORIAS_X_ARTICULO AS CXA ON CXA.IDCATEGORIA = C.IDCATEGORIA
+LEFT JOIN ARTICULOS AS A ON A.IDARTICULO = CXA.IDARTICULO
+GROUP BY C.CATEGORIA
+
+-- Q) Por cada venta, listar el IDVenta, la fecha y el importe de la venta. 
+SELECT V.IDVENTA, V.FECHA, SUM(AXV.CANTIDAD * AXV.PU) AS IMPORTE FROM VENTAS AS V 
+INNER JOIN ARTICULOS_X_VENTA AS AXV ON AXV.IDVENTA = V.IDVENTA
+GROUP BY V.IDVENTA, V.FECHA
+
+-- R) Por cada mes y año, listar el total facturado. 
+SELECT MONTH(V.FECHA) AS MES, YEAR(V.FECHA) AS AÑO, SUM(AXV.CANTIDAD * AXV.PU) AS IMPORTE FROM VENTAS AS V
+INNER JOIN ARTICULOS_X_VENTA AS AXV ON AXV.IDVENTA = V.IDVENTA
+GROUP BY MONTH(V.FECHA), YEAR(V.FECHA)
+
+-- S) Por cada marca, listar el nombre de la marca y el precio máximo del artículo de cada marca. 
+SELECT M.DESCRIPCION, MAX(A.PU) AS MAS_CARO FROM MARCAS AS M
+INNER JOIN ARTICULOS AS A ON A.IDMARCA = M.IDMARCA
+GROUP BY M.DESCRIPCION
+
+-- T) Por cada cliente, listar apellido, nombre y la cantidad de compras realizadas. Solo listar aquellos 
+-- clientes que hayan comprado más de una vez. 
+SELECT CLI.APELLIDO, CLI.NOMBRE, COUNT(*) AS CANTIDAD FROM CLIENTES AS CLI
+INNER JOIN VENTAS AS V ON V.DNI = CLI.DNI
+GROUP BY CLI.APELLIDO, CLI.NOMBRE
+HAVING COUNT(*) > 1
+
+-- U) Por cada artículo, listar el nombre del artículo y la marca. Solo listar aquellos artículos que 
+-- hayan sido vendido 0 veces. 
+SELECT A.DESCRIPCION, M.DESCRIPCION FROM ARTICULOS AS A
+LEFT JOIN MARCAS AS M ON A.IDMARCA = M.IDMARCA
+LEFT JOIN ARTICULOS_X_VENTA AS AXV ON AXV.IDARTICULO = A.IDARTICULO
+GROUP BY A.DESCRIPCION, M.DESCRIPCION
+HAVING COUNT(AXV.IDARTICULO) = 0
+
+-- V) Por cada marca, listar el nombre de la marca y el precio mínimo del artículo de cada marca. 
+-- Sólo de aquellas cuyo precio sea menor a $50. 
+SELECT M.DESCRIPCION, MIN(A.PU) AS MAS_CARO FROM MARCAS AS M
+INNER JOIN ARTICULOS AS A ON A.IDMARCA = M.IDMARCA
+GROUP BY M.DESCRIPCION
+HAVING MIN(A.PU) < 50
