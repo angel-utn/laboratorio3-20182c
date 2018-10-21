@@ -1,4 +1,4 @@
--- PRIMERA PARTE DE LA CLASE
+-- PRIMERA PARTE DE LA CLASE 
 --------------------------------
 -- Por cada tipo de propiedad, la cantidad de vecinos distintos que poseen propiedades de dicho tipo.
 

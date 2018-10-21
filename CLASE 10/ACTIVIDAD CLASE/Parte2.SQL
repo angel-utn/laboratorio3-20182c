@@ -1,4 +1,4 @@
--- SEGUNDA PARTE DE LA CLASE
+-- SEGUNDA PARTE DE LA CLASE 
 -------------------------------
 -- Crear una vista que permita conocer por cada vecino la cantidad de propiedades con superficie construida
 -- y la cantidad de propiedades sin superficie construida que posee.
